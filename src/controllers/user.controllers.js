@@ -17,12 +17,21 @@ const registerUser = asyncHandler(async (req, res) => {
     if(existedUser){
         throw new ApiError(400,`User with ${username?'username':'email'} already exists`);
     }
-    const avtarLocalPath=req.files?.avtar[0]?.path;
-    const coverImageLocalPath=req.files?.coverImage[0]?.path;
-    if(!avtarLocalPath || !coverImageLocalPath){
-        throw new ApiError(400,'Avtar and cover image are required');
+    let avatarLocalPath;
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.avatar) && req.files.avatar.length>0){
+        avatarLocalPath=req.files.avatar[0].path;
     }
-    const avatar=await uoloadOnCloudinary(avtarLocalPath);
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length>0){
+        coverImageLocalPath=req.files.coverImage[0].path;
+    }
+    // console.log(req.files)
+    console.log(avatarLocalPath)
+    console.log(coverImageLocalPath)
+    if(!avatarLocalPath || !coverImageLocalPath){
+        throw new ApiError(400,'avatar and cover image are required');
+    }
+    const avatar=await uoloadOnCloudinary(avatarLocalPath);
     const coverImage=await uoloadOnCloudinary(coverImageLocalPath);
     const user=await User.create({
         fullname,
@@ -30,7 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
         email:email.toLowerCase(),
         password,
         avatar:avatar.url,
-        avtarPubId:avatar.public_id,
+        avatarPubId:avatar.public_id,
         coverImage:coverImage.url,
         coverImagePubId:coverImage.public_id
     });
